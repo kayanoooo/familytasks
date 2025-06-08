@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-4">Новая задача</h1>
+<form method="POST">
+    <div class="mb-3">
+        <label class="form-label">Название</label>
+        <input type="text" name="title" class="form-control" required>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Описание</label>
+        <textarea name="description" class="form-control"></textarea>
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Дедлайн</label>
+        <input type="datetime-local" name="deadline" class="form-control">
+    </div>
+    <div class="mb-3">
+        <label class="form-label">Кому</label>
+        <input type="text" name="assigned_to" class="form-control" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Добавить</button>
+</form>
+{% endblock %}
