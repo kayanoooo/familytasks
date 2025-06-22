@@ -1,4 +1,3 @@
-# ui.py
 import sys
 from PyQt6.QtWidgets import (QApplication, QMainWindow, QWidget, QVBoxLayout, QHBoxLayout, 
                              QLabel, QLineEdit, QPushButton, QListWidget, QListWidgetItem,
@@ -14,7 +13,6 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("Family Task Manager")
         self.setGeometry(100, 100, 900, 700)
         
-        # Установка стилей
         self.setStyleSheet("""
             QMainWindow {
                 background-color: #f5f5f5;
@@ -72,6 +70,15 @@ class MainWindow(QMainWindow):
                 padding: 10px;
                 border: 1px solid #e0e0e0;
             }
+            QPushButton[background-color="#f44336"] {
+            background-color: #f44336;
+            }
+            QPushButton[background-color="#f44336"]:hover {
+                background-color: #d32f2f;
+            }
+            QPushButton[background-color="#f44336"]:pressed {
+                background-color: #b71c1c;
+            }
         """)
         
         self.setup_ui()
@@ -97,27 +104,22 @@ class MainWindow(QMainWindow):
         main_layout.setContentsMargins(10, 10, 10, 10)
         central_widget.setLayout(main_layout)
         
-        # Создаем вкладки
         tabs = QTabWidget()
         tabs.setFont(QFont("Arial", 10))
         main_layout.addWidget(tabs)
         
-        # Вкладка "Члены семьи"
         members_tab = QWidget()
         tabs.addTab(members_tab, "👪 Члены семьи")
         self.setup_members_tab(members_tab)
         
-        # Вкладка "Задачи"
         tasks_tab = QWidget()
         tabs.addTab(tasks_tab, "📋 Задачи")
         self.setup_tasks_tab(tasks_tab)
         
-        # Вкладка "Назначение задач"
         assign_tab = QWidget()
         tabs.addTab(assign_tab, "📌 Назначение")
         self.setup_assign_tab(assign_tab)
         
-        # Вкладка "Рейтинг"
         rating_tab = QWidget()
         tabs.addTab(rating_tab, "🏆 Рейтинг")
         self.setup_rating_tab(rating_tab)
@@ -140,7 +142,6 @@ class MainWindow(QMainWindow):
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(10)
         
-        # Форма добавления члена семьи
         add_frame, add_layout = self.create_section("Добавить члена семьи")
         
         form = QFormLayout()
@@ -157,19 +158,22 @@ class MainWindow(QMainWindow):
         add_layout.addLayout(form)
         layout.addWidget(add_frame)
         
-        # Список членов семьи
         list_frame, list_layout = self.create_section("Список членов семьи")
         self.members_list = QListWidget()
         self.members_list.setStyleSheet("QListWidget { font-size: 13px; }")
         list_layout.addWidget(self.members_list)
         layout.addWidget(list_frame)
+
+        delete_member_button = QPushButton("🗑️ Удалить выбранного")
+        delete_member_button.clicked.connect(self.remove_member)
+        delete_member_button.setStyleSheet("background-color: #f44336;")  # Красный цвет
+        form.addRow(delete_member_button)
     
     def setup_tasks_tab(self, tab):
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(10)
         
-        # Форма добавления задачи
         add_frame, add_layout = self.create_section("Добавить задачу")
         
         form = QFormLayout()
@@ -194,32 +198,33 @@ class MainWindow(QMainWindow):
         add_layout.addLayout(form)
         layout.addWidget(add_frame)
         
-        # Список задач
         list_frame, list_layout = self.create_section("Список задач")
         self.tasks_list = QListWidget()
         self.tasks_list.setStyleSheet("QListWidget { font-size: 13px; }")
         list_layout.addWidget(self.tasks_list)
         layout.addWidget(list_frame)
+
+        delete_task_button = QPushButton("🗑️ Удалить выбранную")
+        delete_task_button.clicked.connect(self.remove_task)
+        delete_task_button.setStyleSheet("background-color: #f44336;")  # Красный цвет
+        form.addRow(delete_task_button)
     
     def setup_assign_tab(self, tab):
         layout = QVBoxLayout(tab)
         layout.setContentsMargins(5, 5, 5, 5)
         layout.setSpacing(10)
         
-        # Верхняя часть с выбором
         top_frame = QFrame()
         top_frame.setStyleSheet(".QFrame { background: white; border-radius: 5px; }")
         top_layout = QHBoxLayout(top_frame)
         top_layout.setContentsMargins(10, 10, 10, 10)
         
-        # Выбор члена семьи
         member_frame, member_layout = self.create_section("Выберите члена семьи")
         self.assign_member_combo = QListWidget()
         self.assign_member_combo.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
         member_layout.addWidget(self.assign_member_combo)
         top_layout.addWidget(member_frame)
         
-        # Выбор задачи
         task_frame, task_layout = self.create_section("Выберите задачу")
         self.assign_task_combo = QListWidget()
         self.assign_task_combo.setSelectionMode(QListWidget.SelectionMode.SingleSelection)
@@ -228,7 +233,6 @@ class MainWindow(QMainWindow):
         
         layout.addWidget(top_frame)
         
-        # Форма назначения
         form_frame, form_layout = self.create_section("Назначение задачи")
         form = QFormLayout()
         form.setVerticalSpacing(10)
@@ -245,7 +249,6 @@ class MainWindow(QMainWindow):
         form_layout.addLayout(form)
         layout.addWidget(form_frame)
         
-        # Назначенные задачи
         assigned_frame, assigned_layout = self.create_section("Назначенные задачи")
         self.assigned_tasks_list = QListWidget()
         assigned_layout.addWidget(self.assigned_tasks_list)
@@ -294,7 +297,6 @@ class MainWindow(QMainWindow):
         
         layout.addWidget(rating_frame)
     
-    # Остальные методы остаются без изменений
     def add_member(self):
         name = self.member_name_input.text().strip()
         if name:
@@ -329,6 +331,30 @@ class MainWindow(QMainWindow):
         self.update_assign_lists()
         
         QMessageBox.information(self, "Успех", f"Задача '{title}' добавлена!")
+    
+    def remove_member(self):
+        selected = self.members_list.currentItem()
+        if not selected:
+            QMessageBox.warning(self, "Ошибка", "Выберите члена семьи для удаления!")
+            return
+        
+        member_id = selected.data(Qt.ItemDataRole.UserRole)
+        member = self.manager.get_member(member_id)
+        
+        reply = QMessageBox.question(
+            self, 'Подтверждение', 
+            f'Удалить {member.name}? Назначенные задачи останутся без исполнителя!',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            if self.manager.remove_member(member_id):
+                self.update_members_list()
+                self.update_assign_lists()
+                self.update_assigned_tasks_list()
+                QMessageBox.information(self, "Успех", "Член семьи удален!")
+            else:
+                QMessageBox.warning(self, "Ошибка", "Не удалось удалить члена семьи!")
     
     def assign_task(self):
         selected_members = self.assign_member_combo.selectedItems()
@@ -379,6 +405,31 @@ class MainWindow(QMainWindow):
                                   f"{member.name} получает {task.points} баллов!")
         else:
             QMessageBox.warning(self, "Ошибка", "Эта задача уже выполнена!")
+
+
+    def remove_task(self):
+        selected = self.tasks_list.currentItem()
+        if not selected:
+            QMessageBox.warning(self, "Ошибка", "Выберите задачу для удаления!")
+            return
+        
+        task_id = selected.data(Qt.ItemDataRole.UserRole)
+        task = self.manager.get_task(task_id)
+        
+        reply = QMessageBox.question(
+            self, 'Подтверждение', 
+            f'Удалить задачу "{task.title}"?',
+            QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No
+        )
+        
+        if reply == QMessageBox.StandardButton.Yes:
+            if self.manager.remove_task(task_id):
+                self.update_tasks_list()
+                self.update_assign_lists()
+                self.update_assigned_tasks_list()
+                QMessageBox.information(self, "Успех", "Задача удалена!")
+            else:
+                QMessageBox.warning(self, "Ошибка", "Не удалось удалить задачу!")
     
     def update_all_lists(self):
         self.update_members_list()
@@ -422,11 +473,17 @@ class MainWindow(QMainWindow):
     
     def update_assigned_tasks_list(self):
         self.assigned_tasks_list.clear()
+        current_date = QDate.currentDate().toString("yyyy-MM-dd")
+        
         for task in self.manager.get_assigned_tasks():
             member = self.manager.get_member(task.assigned_to)
             item_text = f"📌 {task.title} (на {member.name}, до {task.deadline}) - {task.points} баллов"
             item = QListWidgetItem(item_text)
             item.setData(Qt.ItemDataRole.UserRole, task.task_id)
+            
+            if task.deadline < current_date:
+                item.setForeground(QColor("red"))
+            
             self.assigned_tasks_list.addItem(item)
     
     def update_rating(self):

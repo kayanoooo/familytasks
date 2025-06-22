@@ -1,4 +1,3 @@
-# manager.py
 from database import Database
 from models import FamilyMember, Task
 
@@ -8,7 +7,6 @@ class FamilyTaskManager:
         self.load_data()
     
     def load_data(self):
-        # Загрузка данных из базы при инициализации
         self.members = self.db.get_members()
         self.tasks = self.db.get_tasks()
     
@@ -26,10 +24,25 @@ class FamilyTaskManager:
     
     def assign_task(self, task_id, member_id, deadline):
         self.db.assign_task(task_id, member_id, deadline)
-        # Обновляем данные в памяти
         task = self.get_task(task_id)
         if task:
             task.assign(member_id, deadline)
+
+    def remove_member(self, member_id):
+        success = self.db.remove_member(member_id)
+        if success:
+            self.members = [m for m in self.members if m.member_id != member_id]
+            for task in self.tasks:
+                if task.assigned_to == member_id:
+                    task.assigned_to = None
+                    task.deadline = None
+        return success
+    
+    def remove_task(self, task_id):
+        success = self.db.remove_task(task_id)
+        if success:
+            self.tasks = [t for t in self.tasks if t.task_id != task_id]
+        return success
     
     def complete_task(self, task_id):
         success = self.db.complete_task(task_id)

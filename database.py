@@ -1,4 +1,3 @@
-# database.py
 import sqlite3
 from datetime import datetime
 from models import FamilyMember, Task
@@ -11,7 +10,6 @@ class Database:
     def create_tables(self):
         cursor = self.conn.cursor()
         
-        # Таблица членов семьи
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS members (
             member_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -19,7 +17,6 @@ class Database:
         )
         ''')
         
-        # Таблица задач
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS tasks (
             task_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -33,7 +30,6 @@ class Database:
         )
         ''')
         
-        # Таблица рейтинга (баллов)
         cursor.execute('''
         CREATE TABLE IF NOT EXISTS rewards (
             member_id INTEGER PRIMARY KEY,
@@ -44,7 +40,6 @@ class Database:
         
         self.conn.commit()
     
-    # Методы для работы с членами семьи
     def add_member(self, name):
         cursor = self.conn.cursor()
         cursor.execute('INSERT INTO members (name) VALUES (?)', (name,))
@@ -58,7 +53,17 @@ class Database:
         cursor.execute('SELECT member_id, name FROM members')
         return [FamilyMember(row[0], row[1]) for row in cursor.fetchall()]
     
-    # Методы для работы с задачами
+    def remove_member(self, member_id):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('DELETE FROM rewards WHERE member_id = ?', (member_id,))
+            cursor.execute('UPDATE tasks SET assigned_to = NULL WHERE assigned_to = ?', (member_id,))
+            cursor.execute('DELETE FROM members WHERE member_id = ?', (member_id,))
+            self.conn.commit()
+            return cursor.rowcount > 0
+        except sqlite3.Error:
+            return False
+    
     def add_task(self, title, description, points):
         cursor = self.conn.cursor()
         cursor.execute('''
@@ -84,13 +89,22 @@ class Database:
         tasks = []
         for row in cursor.fetchall():
             task = Task(row[0], row[1], row[2], row[3])
-            if row[4]:  # assigned_to
+            if row[4]:
                 task.assigned_to = row[4]
-            if row[5]:  # deadline
+            if row[5]:
                 task.deadline = row[5]
             task.completed = bool(row[6])
             tasks.append(task)
         return tasks
+    
+    def remove_task(self, task_id):
+        try:
+            cursor = self.conn.cursor()
+            cursor.execute('DELETE FROM tasks WHERE task_id = ?', (task_id,))
+            self.conn.commit()
+            return cursor.rowcount > 0
+        except sqlite3.Error:
+            return False
     
     def assign_task(self, task_id, member_id, deadline):
         cursor = self.conn.cursor()
@@ -104,19 +118,16 @@ class Database:
     def complete_task(self, task_id):
         cursor = self.conn.cursor()
         
-        # Получаем информацию о задаче
         cursor.execute('SELECT assigned_to, points FROM tasks WHERE task_id = ?', (task_id,))
         task_data = cursor.fetchone()
         
-        if not task_data or not task_data[0]:  # Если задачи нет или она не назначена
+        if not task_data or not task_data[0]:
             return False
         
         member_id, points = task_data
         
-        # Помечаем задачу как выполненную
         cursor.execute('UPDATE tasks SET completed = 1 WHERE task_id = ?', (task_id,))
         
-        # Обновляем баллы
         cursor.execute('''
         UPDATE rewards 
         SET points = points + ? 
